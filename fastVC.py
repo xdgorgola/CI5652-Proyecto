@@ -25,6 +25,18 @@ def vertex_gain(g: Graph, vert: int, covered: list[tuple[int,int]]) -> int:
     return v_gain
 
 def construct_vc(g: Graph) -> tuple[set[int], list[int]]:
+    """
+        Creates a vertex cover for a graph using the following heuristic:
+
+
+    Args:
+        g (Graph): Graph to create vertex cover for
+
+    Returns:
+        tuple[set[int], list[int]]: Tuple containing
+            - Set of vertices from the resulting vertex cover
+            - Calculated loss of the vertices of the graph
+    """
     C: set[int] = set()
     for e in g.edges:
         if e[0] in C or e[1] in C:
@@ -73,11 +85,10 @@ def BMS(s: set[int], k: int, f: Callable[[int], int]) -> int:
     """
     best: int = choice(list(s))
 
-    for i in range(k):
+    for _ in range(k):
         r:int = choice(list(s))
         if f(r) < f(best):
             best = r
-    
     return best
 
 def ChooseRmVertex(C: set[int], vloss: list[int]) -> int:

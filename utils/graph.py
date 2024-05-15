@@ -20,18 +20,46 @@ class Graph(ABC):
     
     @abstractmethod
     def edge_count(self) -> int:
+        """
+            Calculates the amount of edges in the graph
+
+        Returns:
+            int: Amount of edges in the graph
+        """
         raise NotImplementedError
     
     @abstractmethod
     def get_neighboors(self, vertex: int) -> list[int]:
+        """
+            Gets the neighboors of a vertex in the graph
+
+        Args:
+            vertex (int): Vertex id
+
+        Returns:
+            list[int]: List of ids of the neighbooring vertices
+        """
         raise NotImplementedError
     
     @abstractmethod
-    def get_degree(self, vertex: int) -> list[int]:
+    def get_degree(self, vertex: int) -> int:
+        """
+            Calculates the degree of a vertex in the graph
+
+        Args:
+            vertex (int): Vertex to calculate the degree for
+
+        Returns:
+            int: Degree of the vertex
+        """
         raise NotImplementedError
 
     @abstractmethod
-    def set_edges(self) -> list[tuple[int, int]]:
+    def set_edges(self):
+        """
+            Intended to run on super the constructor.
+            Sets the property self.edges
+        """
         raise NotImplementedError
 
 
@@ -56,11 +84,11 @@ class AdjacencyDictGraph(Graph):
         return len(self.edges)
 
     def get_neighboors(self, vertex):
-        assert(vertex in self.grp)
+        #assert(vertex in self.grp)
         return self.grp[vertex]
     
     def get_degree(self, vertex: int) -> int:
-        assert(vertex in self.grp)
+        #assert(vertex in self.grp)
         return len(self.grp[vertex])
     
     def set_edges(self):
@@ -76,6 +104,17 @@ class AdjacencyDictGraph(Graph):
 
 
 def is_vc(vs: list[int], es: list[tuple[int, int]]) -> bool:
+    """
+        Determines if a set of vertices is a vertex cover for a
+        list of vertices
+
+    Args:
+        vs (list[int]): Vertices of the vertex cover
+        es (list[tuple[int, int]]): Edges to cover
+
+    Returns:
+        bool: True if VS is a vertex cover for ES
+    """
     for v in vs:
         es = list(filter(lambda e: e[0] != v and e[1] != v, es))
     return len(es) == 0
