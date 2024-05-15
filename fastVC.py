@@ -1,4 +1,6 @@
 from utils.graph import *
+from random import choice
+from collections.abc import Callable
 
 def vertex_loss(vert: int, covered: list[tuple[int, int]]) -> int:
     v_loss: int = 0
@@ -49,5 +51,42 @@ def construct_vc(g: Graph) -> tuple[set[int], list[int]]:
     assert(is_vc(list(C), g.edges))
     return (C, vloss)
 
+def BMS(s: set[int], k: int, f: Callable[[int], int]) -> int:
+    """
+        Choose k elements randomly with replacement from the set S and 
+        then return the best one, it selects the best one based on the 
+        function f.
+
+        Args:
+        -----------
+        s: A set of integers that represent vertices of a graph
+        
+        k: An integer that indicates how many times the function going 
+           to select a random vertex of s
+        
+        f: A function f is a function such that we say an element is 
+           better than another one if it has a smaller f value
+        
+        Return:
+        -----------
+        An integer that is a vertex of s
+    """
+    best: int = choice(list(s))
+
+    for i in range(k):
+        r:int = choice(list(s))
+        if f(r) < f(best):
+            best = r
+    
+    return best
+
+def ChooseRmVertex(C: set[int], vloss: list[int]) -> int:
+    return BMS(C,50, lambda x: vloss[x])
+    
+
+
 g = AdjacencyDictGraph(read_mtx("./res/bio-yeast.mtx"))
 (VC, l) = construct_vc(g)
+
+print(ChooseRmVertex(VC, l))
+
