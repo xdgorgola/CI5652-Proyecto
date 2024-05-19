@@ -14,15 +14,15 @@ def vertex_loss(vert: int, covered: list[tuple[int, int]]) -> int:
     return v_loss
 
 
-def vertex_gain(g: Graph, vert: int, covered: list[tuple[int,int]]) -> int:
+def vertex_gain(g: Graph, vert: int, vertex_covered: list[tuple[int,int]]) -> int:
     v_gain: int = 0
-    neighboors = g.get_neighboors(vert)
+    neighboors = g.get_neighboors(vert)    
+
     for n in neighboors + vert:
         gains: bool = True
-        for edge in covered:
-            if n == edge[0] or n == edge[1]:
-                gains = False
-                break
+        if vertex_covered.get(n) != None:
+            gains = False
+            break
         if gains:
             v_gain = v_gain + 1
 
@@ -121,10 +121,13 @@ def fastVC(g: Graph, cutoff: int) -> set[int]:
     vloss: set[int]
     (C, vloss) = construct_vc(g)
     gain: dict[int, int] = {v: 0 for v in range(g.vertex_count) if v not in C}
-    start_time: time = time.time()
+    start_time: float = time.time()
+    found_time: float | None = None
 
     while time.time() - start_time < cutoff:
+        
         if is_vc_alt(C, g):
+            found_time = time.time()
             C_star: set[int] = C.copy()
             min_loss_vertex: int = min(C, key=lambda v: vloss[v])
             C.remove(min_loss_vertex)
@@ -138,24 +141,30 @@ def fastVC(g: Graph, cutoff: int) -> set[int]:
         C.add(v)
         
         covered: list[int] = [edge for edge in g.edges if edge[0] in C or edge[1] in C]
+        vertex_covered = {}
+        for edge in covered:
+            vertex_covered[edge[0]] = 1
+            vertex_covered[edge[1]] = 1
+
         for n in g.get_neighboors(u):
             vloss[n] -= 1
-            gain[n] = vertex_gain(g, n, covered)
+            gain[n] = vertex_gain(g, n, vertex_covered)
 
         for n in g.get_neighboors(v):
             vloss[n] += 1
-            gain[n] = vertex_gain(g, n, covered)
+            gain[n] = vertex_gain(g, n, vertex_covered)
 
-    return C_star
+    return (C_star, found_time-start_time)
 
-if len(sys.argv) != 2:
-    print("Wrong amount of parameters used. Usage:")
-    print("\tpython fastVC.py [path]")
-    sys.exit(1)
+# if len(sys.argv) != 2:
+#     print("Wrong amount of parameters used. Usage:")
+#     print("\tpython fastVC.py [path]")
+#     sys.exit(1)
 
-graphs = os.listdir(sys.argv[1])
-for file in graphs:
-    path = os.path.join(sys.argv[1], file)
-    print(path)
-    g = AdjacencyDictGraph(read_mtx(path))
-    print(fastVC(g, 30))
+# graphs = os.listdir(sys.argv[1])
+# for file in graphs:
+#     path = os.path.join(sys.argv[1], file)
+#     print(path)
+#     g = AdjacencyDictGraph(read_mtx(path))
+#     solution = fastVC(g, 120)
+#     print(len(solution[0]), solution[1] )
