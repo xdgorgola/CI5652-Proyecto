@@ -118,3 +118,11 @@ def is_vc(vs: list[int], es: list[tuple[int, int]]) -> bool:
     for v in vs:
         es = list(filter(lambda e: e[0] != v and e[1] != v, es))
     return len(es) == 0
+
+
+def is_vc_alt(vc: set[int], g: Graph) -> bool:
+    for v in range(g.vertex_count):
+        for n in g.get_neighboors(v):
+            if v not in vc and n not in vc:
+                return False
+    return True

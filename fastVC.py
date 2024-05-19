@@ -1,7 +1,10 @@
 from utils.graph import *
-from random import choice
-import time
 from collections.abc import Callable
+from random import choice
+
+import time
+import sys
+import os
 
 def vertex_loss(vert: int, covered: list[tuple[int, int]]) -> int:
     v_loss: int = 0
@@ -61,7 +64,7 @@ def construct_vc(g: Graph) -> tuple[set[int], list[int]]:
         for n in g.get_neighboors(v):
             vloss[n] = vloss[n] + 1
 
-    assert(is_vc(list(C), g.edges))
+    #assert(is_vc(list(C), g.edges))
     return (C, vloss)
 
 def BMS(s: set[int], k: int, f: Callable[[int], int]) -> int:
@@ -97,8 +100,7 @@ def ChooseRmVertex(C: set[int], vloss: list[int]) -> int:
     
 
 
-g = AdjacencyDictGraph(read_mtx("./res/bio-yeast.mtx"))
-(VC, l) = construct_vc(g)
+#g = AdjacencyDictGraph(read_mtx("./res/bio-yeast.mtx"))
 
 def fastVC(g: Graph, cutoff: int) -> set[int]:
     """
@@ -122,7 +124,7 @@ def fastVC(g: Graph, cutoff: int) -> set[int]:
     start_time: time = time.time()
 
     while time.time() - start_time < cutoff:
-        if is_vc(list(C), g.edges):
+        if is_vc_alt(C, g):
             C_star: set[int] = C.copy()
             min_loss_vertex: int = min(C, key=lambda v: vloss[v])
             C.remove(min_loss_vertex)
@@ -134,15 +136,26 @@ def fastVC(g: Graph, cutoff: int) -> set[int]:
         e: tuple[int, int] = choice([edge for edge in g.edges if edge[0] not in C and edge[1] not in C])
         v: int = e[0] if gain.get(e[0], 0) > gain.get(e[1], 0) else e[1]
         C.add(v)
-
+        
+        covered: list[int] = [edge for edge in g.edges if edge[0] in C or edge[1] in C]
         for n in g.get_neighboors(u):
             vloss[n] -= 1
-            gain[n] = vertex_gain(g, n, [edge for edge in g.edges if edge[0] in C or edge[1] in C])
+            gain[n] = vertex_gain(g, n, covered)
 
         for n in g.get_neighboors(v):
             vloss[n] += 1
-            gain[n] = vertex_gain(g, n, [edge for edge in g.edges if edge[0] in C or edge[1] in C])
+            gain[n] = vertex_gain(g, n, covered)
 
     return C_star
 
-print(fastVC(g, 1000))
+if len(sys.argv) != 2:
+    print("Wrong amount of parameters used. Usage:")
+    print("\tpython fastVC.py [path]")
+    sys.exit(1)
+
+graphs = os.listdir(sys.argv[1])
+for file in graphs:
+    path = os.path.join(sys.argv[1], file)
+    print(path)
+    g = AdjacencyDictGraph(read_mtx(path))
+    print(fastVC(g, 30))

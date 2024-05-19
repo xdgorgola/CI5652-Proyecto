@@ -5,7 +5,6 @@ def naive_mvc(nv: int, es: list[tuple[int, int]]) -> list[int] | None:
     for i in range(0, nv):
         ps = list(map(lambda p: list(p), permutations(range(nv), i)))
         for p in ps:
-            #print(f'{p} {is_vc(p, es)}')
             if (is_vc(p, es)):
                 return p
     return None
