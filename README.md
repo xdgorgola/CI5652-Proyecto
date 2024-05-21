@@ -1,7 +1,9 @@
 # CI5652-Proyecto
 ## Integrantes 
 Pedro Rodríguez 15-11264
+
 Gabriela Panqueva, 18-10761
+
 Kenny Rojas, 18-10595
 
 ## Resumen
