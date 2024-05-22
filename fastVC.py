@@ -1,10 +1,10 @@
-from utils.graph import *
 from collections.abc import Callable
+from itertools import combinations
 from random import choice
+from utils.graph import *
 
 import time
-import sys
-import os
+
 
 def vertex_loss(vert: int, covered: list[tuple[int, int]]) -> int:
     v_loss: int = 0
@@ -16,7 +16,7 @@ def vertex_loss(vert: int, covered: list[tuple[int, int]]) -> int:
 
 def vertex_gain(g: Graph, vert: int, vertex_covered: list[tuple[int,int]]) -> int:
     v_gain: int = 0
-    neighboors = g.get_neighboors(vert)    
+    neighboors = g.get_neighboors(vert)
 
     for n in neighboors + vert:
         gains: bool = True
@@ -27,6 +27,16 @@ def vertex_gain(g: Graph, vert: int, vertex_covered: list[tuple[int,int]]) -> in
             v_gain = v_gain + 1
 
     return v_gain
+
+
+def brute_mvc(g: Graph) -> list[int] | None:
+    for i in range(0, g.vertex_count):
+        ps = list(map(lambda p: list(p), combinations(range(i), i)))
+        for p in ps:
+            if (is_vc_alt(set(p), g)):
+                return p
+    return None
+
 
 def construct_vc(g: Graph) -> tuple[set[int], list[int]]:
     """
@@ -60,11 +70,9 @@ def construct_vc(g: Graph) -> tuple[set[int], list[int]]:
         if vloss[v] != 0:
             continue
         C.remove(v)
-        #Updatear adyacentes. Se les suma 1 a los vecinos pero no estoy claro si es en el grafo per se o en C?
         for n in g.get_neighboors(v):
             vloss[n] = vloss[n] + 1
 
-    #assert(is_vc(list(C), g.edges))
     return (C, vloss)
 
 def BMS(s: set[int], k: int, f: Callable[[int], int]) -> int:
@@ -95,12 +103,10 @@ def BMS(s: set[int], k: int, f: Callable[[int], int]) -> int:
             best = r
     return best
 
+
 def ChooseRmVertex(C: set[int], vloss: list[int]) -> int:
     return BMS(C,50, lambda x: vloss[x])
-    
 
-
-#g = AdjacencyDictGraph(read_mtx("./res/bio-yeast.mtx"))
 
 def fastVC(g: Graph, cutoff: int) -> set[int]:
     """
@@ -155,16 +161,3 @@ def fastVC(g: Graph, cutoff: int) -> set[int]:
             gain[n] = vertex_gain(g, n, vertex_covered)
 
     return (C_star, found_time-start_time)
-
-# if len(sys.argv) != 2:
-#     print("Wrong amount of parameters used. Usage:")
-#     print("\tpython fastVC.py [path]")
-#     sys.exit(1)
-
-# graphs = os.listdir(sys.argv[1])
-# for file in graphs:
-#     path = os.path.join(sys.argv[1], file)
-#     print(path)
-#     g = AdjacencyDictGraph(read_mtx(path))
-#     solution = fastVC(g, 120)
-#     print(len(solution[0]), solution[1] )

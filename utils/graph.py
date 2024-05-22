@@ -84,11 +84,9 @@ class AdjacencyDictGraph(Graph):
         return len(self.edges)
 
     def get_neighboors(self, vertex):
-        #assert(vertex in self.grp)
         return self.grp[vertex]
     
     def get_degree(self, vertex: int) -> int:
-        #assert(vertex in self.grp)
         return len(self.grp[vertex])
     
     def set_edges(self):
@@ -101,23 +99,6 @@ class AdjacencyDictGraph(Graph):
                 
                 self.edges.append((v, a))
             checked.add(v)
-
-
-def is_vc(vs: list[int], es: list[tuple[int, int]]) -> bool:
-    """
-        Determines if a set of vertices is a vertex cover for a
-        list of vertices
-
-    Args:
-        vs (list[int]): Vertices of the vertex cover
-        es (list[tuple[int, int]]): Edges to cover
-
-    Returns:
-        bool: True if VS is a vertex cover for ES
-    """
-    for v in vs:
-        es = list(filter(lambda e: e[0] != v and e[1] != v, es))
-    return len(es) == 0
 
 
 def is_vc_alt(vc: set[int], g: Graph) -> bool:
