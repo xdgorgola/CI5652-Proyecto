@@ -31,8 +31,9 @@ def vertex_gain(g: Graph, vert: int, vertex_covered: list[tuple[int,int]]) -> in
 
 def brute_mvc(g: Graph) -> list[int] | None:
     for i in range(0, g.vertex_count):
-        ps = list(map(lambda p: list(p), combinations(range(i), i)))
+        ps = map(lambda p: p, combinations(range(g.vertex_count), i))
         for p in ps:
+            print(p)
             if (is_vc_alt(set(p), g)):
                 return p
     return None
