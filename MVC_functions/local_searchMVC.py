@@ -1,5 +1,8 @@
+import sys
+sys.path.append("..")
+
 from random import choice
-from .utils.graph import *
+from utils.graph import *
 from .utils.tools_MVC import *
 import time
 

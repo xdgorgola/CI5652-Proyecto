@@ -1,6 +1,9 @@
+import sys
+sys.path.append("...")
+
 from collections.abc import Callable
 from random import choice
-from .graph import *
+from utils.graph import *
 
 def vertex_loss(vert: int, covered: list[tuple[int, int]]) -> int:
     v_loss: int = 0
