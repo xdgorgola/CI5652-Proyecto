@@ -1,9 +1,12 @@
+import sys
+sys.path.append("..")
+
 from random import choice
-from .utils.graph import *
+from utils.graph import *
 from .utils.tools_MVC import *
 import time
 
-def localSearchMVC(g: Graph, 
+def local_searchMVC(g: Graph, 
                    cutoff: int, 
                    max_iter: int = 60,
                    init_sol: tuple[set[int], list[int]] | None = None) -> set[int]:
@@ -16,7 +19,12 @@ def localSearchMVC(g: Graph,
 
     cutoff: The maximun time allowed to calculate the MVC
 
-    Return:
+    max_iter: The maximum number of iterations in a row without improvement
+
+    init_sol: A tuple with a initial solution, it contains a vertex cover
+              and a list with the loss of each vertex
+
+    Returns:
     -----------
     A set of vertices that correspond to the MVC
     """

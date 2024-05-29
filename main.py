@@ -2,7 +2,7 @@ import os
 from MVC_functions.fastVC import fastVC
 from threading import Thread
 import sys
-from MVC_functions.utils.graph import AdjacencyDictGraph,read_mtx
+from utils.graph import AdjacencyDictGraph,read_mtx
 
 import pandas as pd
 
