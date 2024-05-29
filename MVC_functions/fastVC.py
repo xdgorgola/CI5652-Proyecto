@@ -32,7 +32,7 @@ def fastVC(g: Graph, cutoff: int) -> set[int]:
         
         if is_vc_alt(C, g):
             found_time = time.time()
-            C_star: set[int] = C.copy()
+            C_star: set[int] = type(C)(C)
             min_loss_vertex: int = min(C, key=lambda v: vloss[v])
             C.remove(min_loss_vertex)
             continue
