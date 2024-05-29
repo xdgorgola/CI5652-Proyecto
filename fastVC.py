@@ -170,7 +170,10 @@ def fastVC(g: Graph, cutoff: int) -> set[int]:
 
     return (C_star, found_time-start_time)
 
-def localSearchMVC(g: Graph, cutoff: int, max_iter: int = 60) -> set[int]:
+def localSearchMVC(g: Graph, 
+                   cutoff: int, 
+                   max_iter: int = 60,
+                   init_sol: tuple[set[int], list[int]] | None = None) -> set[int]:
     """
     Calculates the minimum vertex cover of a graph with local search.
     
@@ -187,7 +190,7 @@ def localSearchMVC(g: Graph, cutoff: int, max_iter: int = 60) -> set[int]:
 
     C: set[int]
     vloss: set[int]
-    (C, vloss) = construct_vc(g)
+    (C, vloss) = construct_vc(g) if init_sol is None else init_sol
     C_star: set[int] = type(C)(C)
     iter: int = 0
 
