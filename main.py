@@ -1,8 +1,9 @@
 import os
-from fastVC import fastVC
+from MVC_functions.fastVC import fastVC
 from threading import Thread
 import sys
-from utils.graph import AdjacencyDictGraph,read_mtx
+from MVC_functions.utils.graph import AdjacencyDictGraph,read_mtx
+
 import pandas as pd
 
 def exec_fastvc(g, time, result, index):
