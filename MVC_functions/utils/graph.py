@@ -67,7 +67,7 @@ class AdjacencyDictGraph(Graph):
     def __init__(self, mtx_repr: Graph_MTX) -> None:
             self.grp: dict[int, list[int]] = {}
             nze = mtx_repr.nonzero()
-            for nd in range(len(nze[0])):
+            for nd in range(len(nze[0]) // 2):
                 a: int = nze[0][nd]
                 b: int = nze[1][nd]
 
@@ -96,7 +96,6 @@ class AdjacencyDictGraph(Graph):
             for a in adjs:
                 if a in checked:
                     continue
-                
                 self.edges.append((v, a))
             checked.add(v)
 
@@ -107,3 +106,18 @@ def is_vc_alt(vc: set[int], g: Graph) -> bool:
             if v not in vc and n not in vc:
                 return False
     return True
+
+
+def is_vc_gen_alt(vc: set[int], g: Graph) -> bool:
+    c_amnt = 0
+    checked = set()
+    for v in range(g.vertex_count):
+        if not(v in vc):
+            continue
+        checked.add(v)
+        for n in g.get_neighboors(v):
+            if n in checked and n in vc:
+                continue
+            if v in vc:
+                c_amnt = c_amnt + 1
+    return (c_amnt == g.edge_count(), c_amnt)
