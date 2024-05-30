@@ -1,5 +1,5 @@
 from .utils.bitmask import Bitmask
-from utils.graph import Graph, AdjacencyDictGraph, is_vc_alt, is_vc_gen_alt, read_mtx
+from utils.graph import Graph, AdjacencyDictGraph, is_vc_gen_alt, read_mtx
 from random import random, randint, shuffle
 from time import time
 import numpy as np
@@ -104,5 +104,7 @@ def genetic_process(g: Graph, i_pop: int = 5, max_iters: int = 40, max_time: int
         print(f"======== Generacion {i} ========")
         i = i + 1
 
-# g = AdjacencyDictGraph(read_mtx("./res/ca-GrQc.mtx"))
-# genetic_process(g, max_iters=10000)
+
+if __name__ == "__main__":
+    g = AdjacencyDictGraph(read_mtx("./res/ca-GrQc.mtx"))
+    genetic_process(g, max_iters=10000)
