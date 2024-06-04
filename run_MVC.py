@@ -1,5 +1,5 @@
 from MVC_functions.graspMVC import graspMVC
-from MVC_functions.SAMVC import SAMVC_version_blog, SAMVC
+from MVC_functions.SAMVC import SAMVC
 from utils.graph import * 
 import time
 
@@ -9,9 +9,11 @@ def main():
 
     g = AdjacencyDictGraph(read_mtx("res/datos/grafos_masivos/bio-yeast.mtx"))
     
+    # print(g.get_neighboors(1226))
     print("########################|Inicio|##########################")
     start = time.time()
-    MVC_solution, found_time = SAMVC(g, 300, 100, 0, 0.1, 30)
+    MVC_solution, found_time = SAMVC(g, 300, 10000, 1e-5, 0.99, 30)
+    # MVC_solution, found_time = graspMVC(g, 300)
     print(f"Tardo en total {time.time() - start} segundos")
     print(f"Encontro una solucion aceptable a los {found_time} segundos")
     print(f"El conjunto de vertices tiene {len(MVC_solution)} vertices")
