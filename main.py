@@ -1,16 +1,31 @@
 import os
 from MVC_functions.fastVC import fastVC
+from MVC_functions.TS import tabu_search
+from MVC_functions.graspMVC import graspMVC
+from MVC_functions.local_searchMVC import local_searchMVC
 from threading import Thread
 import sys
 from utils.graph import AdjacencyDictGraph,read_mtx
 
 import pandas as pd
 
+def exec_TS(g, result, index):
+    solution = tabu_search(g, 100, 50)
+    result[index] = [len(solution[0]), solution[1]]
+
+def exec_grasp(g, time, result, index):
+    solution = graspMVC(g, time)
+    result[index] = [len(solution[0]), solution[1]]
+
+def exec_local(g, time, result, index):
+    solution = local_searchMVC(g, time)
+    result[index] = [len(solution[0]), solution[1]]
+
 def exec_fastvc(g, time, result, index):
     solution = fastVC(g, time)
     result[index] = [len(solution[0]), solution[1]]
 
-def main(dir_path_in, dir_path_out, files_per_batch):
+def main(dir_path_in:str, dir_path_out:str, files_per_batch:str, type:str):
     """
     Utiliza hilos para realizar fastvc en varios archivos al mismo tiempo 
     10 veces seguidas.
@@ -46,7 +61,15 @@ def main(dir_path_in, dir_path_out, files_per_batch):
 
         print(f"Lanzando Hilos para el archivo {file}")
         for i in range(10):
-            threads[i + 10*counter] = Thread(target= exec_fastvc, args=(g,300,result, i + 10*counter))
+            if type == "fastvc":
+                threads[i + 10*counter] = Thread(target= exec_fastvc, args=(g,300,result, i + 10*counter))
+            elif type == "ts":
+                threads[i + 10*counter] = Thread(target= exec_TS, args=(g,result, i + 10*counter))
+            elif type == "grasp":
+                threads[i + 10*counter] = Thread(target= exec_grasp, args=(g,300,result, i + 10*counter))
+            else:
+                threads[i + 10*counter] = Thread(target= exec_local, args=(g,300,result, i + 10*counter))
+                
             threads[i + 10*counter].start()
         print(f"Hilos Lanzados para el archivo {file}")
 
@@ -79,10 +102,10 @@ def main(dir_path_in, dir_path_out, files_per_batch):
 if __name__ == "__main__":
     """
     Ejemplo de como deben llamar a este script
-        python .\main.py .\res\datos .\res\results\ 5
+        python .\main.py .\res\datos .\res\results\ 5 fastvc
     
     """
-    if len(sys.argv) != 4:
+    if len(sys.argv) != 5:
         print("Wrong amount of parameters used. Usage:")
         print("\tpython fastVC.py [path_in] [path_out] [files_per_batch]")
         sys.exit(1)
