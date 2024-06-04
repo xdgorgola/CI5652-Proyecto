@@ -29,6 +29,8 @@ def local_searchMVC(g: Graph,
     A set of vertices that correspond to the MVC
     """
 
+    C: set[int]
+    vloss: set[int]
     (C, vloss) = construct_vc(g) if init_sol is None else init_sol
     C_star: set[int] = type(C)(C)
     iter: int = 0
@@ -55,7 +57,6 @@ def local_searchMVC(g: Graph,
 
         N_R = g.get_neighboors(R[0]) + g.get_neighboors(R[1])
         
-        #c_'' = C
         while len(uncovered_edges) != 0:
             chosen_vertex = choice(N_R)
 
