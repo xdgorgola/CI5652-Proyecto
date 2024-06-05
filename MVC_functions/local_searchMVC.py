@@ -50,7 +50,7 @@ def local_searchMVC(g: Graph,
         vloss[R[1]] = 0
 
         uncovered_edges: list[tuple[int, int]] = []
-        
+
         for edge in g.edges:
             if edge[0] not in C and edge[1] not in C:
                 uncovered_edges.append(edge)
@@ -58,6 +58,11 @@ def local_searchMVC(g: Graph,
         N_R = g.get_neighboors(R[0]) + g.get_neighboors(R[1])
         
         while len(uncovered_edges) != 0:
+            if len(N_R) == 0:
+                C.add(R[0])
+                C.add(R[1])
+                break
+            
             chosen_vertex = choice(N_R)
 
             C.add(chosen_vertex)
