@@ -36,7 +36,7 @@ def local_searchMVC(g: Graph,
     iter: int = 0
 
     start_time: float = time.time()
-    found_time: float | None = None
+    found_time: float = time.time()
 
     chosen_vertex: int | None = None
     R: list[int] | None = None
@@ -68,7 +68,6 @@ def local_searchMVC(g: Graph,
                     uncovered_edges.remove(uncovered_edge)
                     vloss[chosen_vertex] += 1 
         
-        found_time = time.time()
 
         redundant_vertex: list[int] = [i for i in C if vloss[i] == 0]
         for n in redundant_vertex:
@@ -76,6 +75,9 @@ def local_searchMVC(g: Graph,
             vloss[n] = 0
 
         if len(C) < len(C_star):
+
+            found_time = time.time()
+            
             C_star = type(C)(C)
             iter = 0
         else:
