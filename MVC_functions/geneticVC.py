@@ -1,4 +1,4 @@
-from utils.bitmask import Bitmask
+from .utils.bitmask import Bitmask
 from utils.graph import Graph, AdjacencyDictGraph, is_vc_gen_alt
 from random import random
 from time import time
