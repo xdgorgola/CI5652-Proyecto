@@ -2,7 +2,10 @@ import numpy as np
 from functools import reduce
 
 class Bitmask():
+    LAST_ID = 0
     def __init__(self, n = None, base: list[bool] = None):
+        self.id = Bitmask.LAST_ID + 1
+        Bitmask.LAST_ID = Bitmask.LAST_ID + 1
         if base != None:
             self.mask = np.array(base, dtype=bool)
             self.n = self.mask.shape[0]
@@ -32,6 +35,7 @@ class Bitmask():
     def inverse(self):
         a = Bitmask(self.mask.shape[0])
         a.mask = np.logical_not(self.mask)
+        a.amount_set = np.count_nonzero(a.mask)
         return a
     
     def true_pos(self):
@@ -41,8 +45,6 @@ class Bitmask():
         return (self.mask == False).nonzero()[0]
     
     def to_set(self):
-        print(self.mask.nonzero())
-        print(self.mask.nonzero()[0])
         return set(self.mask.nonzero()[0].tolist())
     
     def __getitem__(self, key):

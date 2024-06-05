@@ -1,20 +1,61 @@
 from utils.bitmask import Bitmask
 from utils.graph import Graph, AdjacencyDictGraph, is_vc_alt, is_vc_gen_alt, read_mtx
-from random import random, randint, shuffle
+from random import random
 from time import time
+from math import inf
 import numpy as np
+
+COV_AMNT_W = 2.0
+AMOUNT_SET_W = 1.0
+NOT_VC_W = 3.0
 
 # Genotipo: Mascara de bits de 1 hasta cantidad de nodos
 # Fenotipo: Vertices que conforman la cobertura minima
-# Seria bueno saber cuantos ejes quedan por cubrir :think:
+
+def normalized_array(a: np.ndarray) -> np.ndarray:
+    """
+    Returns a normalized array
+
+    Args:
+        a (np.ndarray): Array to normalize
+
+    Returns:
+        np.ndarray: New array a but normalized
+    """
+    return (a - a.min()) / a.ptp()
+
 def fitness(a: Bitmask, g: Graph) -> int:
+    """
+    Fitness functions for the genotipes. This functions takes into acount
+    the amount of edges covered by the genotipe, and tries to steer it to a 
+    better solution by reducing the score depending on the amount of bits set
+    in the bitmask or if the bitmask is not a vertex cover
+
+    Args:
+        a (Bitmask): Bitmask to evaluate
+        g (Graph): Graph to calculate the minimum vertex cover
+
+    Returns:
+        int: Fitness value
+    """
     (is_vc, cov_amnt) = is_vc_gen_alt(set(a.true_pos()), g)
     print(f"is_vc {is_vc} cov_amnt {cov_amnt} amount_set {a.amount_set}")
-    return 2 * cov_amnt - a.amount_set - 5 * g.vertex_count * (1 - is_vc)
+    return COV_AMNT_W * cov_amnt - AMOUNT_SET_W * a.amount_set - NOT_VC_W * g.edge_count() * (1 - is_vc)
 
 
 # ============== CRUCE ==============
 def crossover(p1: Bitmask, p2: Bitmask, pi: int) -> tuple[Bitmask, Bitmask]:
+    """
+    Crossover operator for a single cut point
+
+    Args:
+        p1 (Bitmask): Genotipe 1 to cross
+        p2 (Bitmask): Genotipe 2 to cross
+        pi (int): Point of cut
+
+    Returns:
+        tuple[Bitmask, Bitmask]: Tuple of bitmask result of the crossover
+    """
     (o1, o2) = (Bitmask(p1.n), Bitmask(p1.n))
     for b in range(0, pi):
         o1[b] = p1[b]
@@ -28,6 +69,17 @@ def crossover(p1: Bitmask, p2: Bitmask, pi: int) -> tuple[Bitmask, Bitmask]:
 
 
 def k_crossover(p1: Bitmask, p2: Bitmask, pi: list[int]) -> tuple[Bitmask, Bitmask]:
+    """
+    Crossover operator generalized for k cut points
+
+    Args:
+        p1 (Bitmask): Genotipe 1 to cross
+        p2 (Bitmask): Genotipe 2 to cross
+        pi (list[int]): List containing all the points of cut
+
+    Returns:
+        tuple[Bitmask, Bitmask]: Tuple of bitmask result of the crossover
+    """
     (o1, o2) = (Bitmask(p1.n), Bitmask(p1.n))
     i, t = 0, 0
     for p in pi + [p1.n]:
@@ -39,35 +91,76 @@ def k_crossover(p1: Bitmask, p2: Bitmask, pi: list[int]) -> tuple[Bitmask, Bitma
     return (o1, o2)
 
 
-def uniform_crossover(p1: Bitmask, p2: Bitmask) -> tuple[Bitmask, Bitmask]:
+def uniform_crossover(p1: Bitmask, p2: Bitmask, chance: float = 0.5) -> tuple[Bitmask, Bitmask]:
+    """
+    Uniform crossover. Every bit of p1 and p2 is swapped
+    based on a probability
+
+    Args:
+        p1 (Bitmask): Genotipe 1 to cross
+        p2 (Bitmask): Genotipe 2 to cross
+        chance (float, optional): Chance of swapping. Defaults to 0.5.
+
+    Returns:
+        tuple[Bitmask, Bitmask]: Tuple of bitmask result of the crossover
+    """
+    (o1, o2) = (Bitmask(p1.n), Bitmask(p1.n))
+    for b in range(0, p1.n):
+        if (random() <= chance):
+            o1[b] = p2[b]
+            o2[b] = p1[b]
+    return (o1, o2)
+
+
+def uniform_crossover_alt(p1: Bitmask, p2: Bitmask, chance: float = 0.5) -> tuple[Bitmask, Bitmask]:
+    """
+    Uniform crossover. Every bit of p1 and p2 is swapped
+    based on a probability independently
+
+    Args:
+        p1 (Bitmask): Genotipe 1 to cross
+        p2 (Bitmask): Genotipe 2 to cross
+        chance (float, optional): Chance of swapping. Defaults to 0.5.
+
+    Returns:
+        tuple[Bitmask, Bitmask]: Tuple of bitmask result of the crossover
+    """
     (o1, o2) = (Bitmask(p1.n), Bitmask(p1.n))
     for b in range(0, p1.n):
         p = random()
-        o1[b] = p1[b] if p <= 0.5 else p2[b]
-        o2[b] = p2[b] if p <= 0.5 else p1[b]
+        o1[b] = p1[b] if p <= chance else p2[b]
+        o2[b] = p2[b] if p <= chance else p1[b]
     return (o1, o2)
 
 
 # ============== MUTACION ==============
 def uniform_mutation(p1: Bitmask, rate: float | None = None) -> Bitmask:
-    o1: Bitmask = Bitmask(p1.n)
-    chance: float = 1.0 / p1.n
-    for b in range(0, p1.n):
-        o1[b] = ~p1[b] if random() <= (rate if rate != None else chance) else p1[b]
-    return o1
 
+    o1: Bitmask = Bitmask(p1.n)
+    chance: float = 1.0 / p1.n if rate == None else rate
+    for b in range(0, p1.n):
+        o1[b] = ~p1[b] if random() <= chance else p1[b]
+    return o1
+    
 
 def invert_mutation(p1: Bitmask) -> Bitmask:
-    return p1.inverse()
+    """
+    Mutation that inverts the whole genotipe
 
+    Args:
+        p1 (Bitmask): Genotipe to mutate
+
+    Returns:
+        Bitmask: p1 inverted
+    """
+    return p1.inverse()
 
 # ============== SELECCION DE PADRES ==============
 # Sin replacement
-def elitist_selection(cands: list[Bitmask], n: int, fit: list[int]) -> list[Bitmask]:
+def elitist_selection(cands: list[Bitmask], fit: list[int], n: int) -> list[Bitmask]:
     return list(map(lambda r: r[1], sorted(enumerate(cands), key=lambda a: fit[a[0]], reverse=True)))[:min(n, len(cands))]
 
-
-def roulette_selection(cands: list[Bitmask], n: int, fit: list[int], replace: bool = True) -> list[Bitmask]:
+def roulette_selection(cands: list[Bitmask], fit: list[int], n: int, replace: bool = True) -> list[Bitmask]:
     r: list[Bitmask] = []
     tf: int = sum(map(abs,fit))
     i: int = 0
@@ -77,32 +170,54 @@ def roulette_selection(cands: list[Bitmask], n: int, fit: list[int], replace: bo
         i = (i + 1) % len(cands)
     return r
 
+
+def normalized_roulette_selection(cands: list[Bitmask], fit: list[int], n: int, bias: float = 0, replace: bool = True) -> list[Bitmask]:
+    r: list[Bitmask] = []
+    norm_fit = normalized_array(np.array(fit)) + bias
+    tf: float = norm_fit.sum()
+    i: int = 0
+    while len(r) < n or len(r) == 0:
+        if norm_fit[i] / tf <= random():
+            r.append(cands[i] if replace else cands.pop(i))
+        i = (i + 1) % len(cands)
+    return r
+
 # ============== SUPERVIVENCIA DE POBLACION ==============
-def worst_elimination(pop: list[Bitmask], offspring: list[Bitmask], fit: list[int]) -> list[Bitmask]:
+def worst_elimination(pop: list[Bitmask], fit: list[int], offspring: list[Bitmask]) -> list[Bitmask]:
     return list(map(lambda s: s[1], sorted(enumerate(pop), key=lambda a: fit[a[0]], reverse=True)))[:-len(offspring)] + offspring
 
 # Con replacement
-def tournament_selection(cands: list[Bitmask], n: int, t_size: int, g: Graph) -> list[Bitmask]:
-    f: list[int] = [fitness(c, g) for c in cands]
+def tournament_selection(cands: list[Bitmask], fit: list[int], n: int, t_size: int, replace: bool = False) -> list[Bitmask]:
     r: list[Bitmask] = []
     while len(r) < n:
-        l = randint(0, len(cands) - t_size) # Cuidado, randint es inclusivo a la derecha...
-        r.append(cands[np.argmax(f[l:l+t_size])])
+        c = np.random.choice(len(cands), size=t_size, replace=replace).tolist()
+        r.append(cands[max(c, key=lambda i: fit[i])])
     return r
 
-# ============== POBLACION INICIAL ==============
-def genetic_process(g: Graph, i_pop: int = 5, max_iters: int = 40, max_time: int = 300):
+# ============== ALGORITMO GENETICO ==============
+def genetic_process(g: Graph, i_pop: int = 5, mut_rate: float=None, max_iters: int = 40, max_time: int = 300):
     pop: list[Bitmask] = [Bitmask(base=np.random.choice(a=[False, True], size=g.vertex_count).tolist()) for _ in range(i_pop)]
     start_time = time()
     i = 0
+    best = None
+    bestFit = -inf
     while (i < max_iters and time() - start_time < max_time):
         pop_fit = list(map(lambda b: fitness(b, g), pop))
-        parents = roulette_selection(pop, 2, pop_fit)
-        offspring = list(map(lambda o: uniform_mutation(o), uniform_crossover(parents[0], parents[1])))
+        parents = elitist_selection(pop, pop_fit, 2)
+        offspring = list(map(lambda o: uniform_mutation(o, rate=mut_rate), uniform_crossover_alt(parents[0], parents[1])))
         offspring_fit = list(map(lambda b: fitness(b, g), offspring))
-        pop = worst_elimination(pop, offspring, pop_fit)
+        pop = worst_elimination(pop, pop_fit, offspring)
+
+        
         print(f"======== Generacion {i} ========")
         i = i + 1
+        gb = max(zip(pop + offspring, pop_fit + offspring_fit), key=lambda t: t[1])
+        if gb[1] > bestFit:
+            best = gb[0]
+            bestFit = gb[1] 
 
-g = AdjacencyDictGraph(read_mtx("./res/ca-GrQc.mtx"))
-genetic_process(g, max_iters=10000)
+    print(best)
+    print(bestFit)
+
+g = AdjacencyDictGraph("./res/bio-dmela.mtx")
+genetic_process(g, i_pop=10, mut_rate=0.005, max_iters=10000, max_time=60*10)
