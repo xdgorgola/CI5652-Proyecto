@@ -2,6 +2,7 @@ import time
 import random
 from utils.graph import *
 from .local_searchMVC import local_searchMVC
+from .utils.tools_MVC import vertex_gain
 
 def build_RCL(gain:list[float], alpha:float)->list[int]:
     s: list[int] = []
@@ -14,12 +15,12 @@ def build_RCL(gain:list[float], alpha:float)->list[int]:
         # busca maximizarla, por lo que si alpha
         # es 0 te da todos los vertices cuyo cs
         # sea el maximo
-        if gain[i] >= min_cs + (1-alpha)*(max_cs - min_cs):
+        if gain[i] >= max_cs - alpha*(max_cs - min_cs):
             s.append(i)
     
     return s
 
-def greedy_randomize_building(g:Graph, alpha:float):
+def greedy_randomize_building(g:Graph, alpha:float, cutoff:float):
     s: list[int] = set()
     gain:list[float] = []
 
@@ -30,9 +31,14 @@ def greedy_randomize_building(g:Graph, alpha:float):
     for i in range(g.vertex_count):
         gain.append(g.get_degree(i))
     
+    start_time = time.time()
     while not is_vc_alt(s,g):
+        if time.time() - start_time > cutoff:
+            raise Exception("Tardo demasiado")
+        
         RCL: list[int] = build_RCL(gain,alpha)
         e: int = random.choice(RCL)
+       
         s.add(e)
 
         # actualizamos la ganancia
@@ -76,9 +82,13 @@ def graspMVC(g: Graph, cutoff: int):
     found_time: float | None = None
 
     while time.time() - start_time < cutoff: 
-        c_prime = greedy_randomize_building(g, 0.25)
+        try:
+            c_prime = greedy_randomize_building(g, 0.25, cutoff/5)
+        except:
+            return (set(), -1)
 
         vloss = calculate_loss(g,c_prime)
+
         c_prime_star, _ = local_searchMVC(g, cutoff/2, 100, (c_prime, vloss))
         
         if c_star == None or len(c_prime_star) > len(c_star):

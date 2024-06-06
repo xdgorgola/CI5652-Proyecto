@@ -3,6 +3,7 @@ from MVC_functions.fastVC import fastVC
 from MVC_functions.TS import tabu_search
 from MVC_functions.graspMVC import graspMVC
 from MVC_functions.local_searchMVC import local_searchMVC
+from MVC_functions.SAMVC import SAMVC
 from threading import Thread
 import sys
 from utils.graph import AdjacencyDictGraph,read_mtx
@@ -24,6 +25,10 @@ def exec_local(g, time, result, index):
 def exec_fastvc(g, time, result, index):
     solution = fastVC(g, time)
     result[index] = [len(solution[0]), solution[1]]
+
+def exec_samvc(g, time, result, index):
+    MVC_solution, found_time = SAMVC(g, 300, 30, 0.0001, 0.9999, 30)
+    result[index] = [len(MVC_solution), found_time]
 
 def main(dir_path_in:str, dir_path_out:str, files_per_batch:str, type:str):
     """
@@ -67,6 +72,8 @@ def main(dir_path_in:str, dir_path_out:str, files_per_batch:str, type:str):
                 threads[i + 10*counter] = Thread(target= exec_TS, args=(g,result, i + 10*counter))
             elif type == "grasp":
                 threads[i + 10*counter] = Thread(target= exec_grasp, args=(g,300,result, i + 10*counter))
+            elif type == "sa":
+                threads[i + 10*counter] = Thread(target= exec_samvc, args=(g,300,result, i + 10*counter))
             else:
                 threads[i + 10*counter] = Thread(target= exec_local, args=(g,300,result, i + 10*counter))
                 
