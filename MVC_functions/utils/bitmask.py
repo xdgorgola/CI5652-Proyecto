@@ -3,6 +3,13 @@ from functools import reduce
 
 class Bitmask():
     LAST_ID = 0
+
+    def from_int_set(n: int, base: set[int]):
+        barr = np.zeros((n,), dtype=bool)
+        for v in base:
+            barr[v] = True
+        return Bitmask(n, barr.tolist())
+    
     def __init__(self, n = None, base: list[bool] = None):
         self.id = Bitmask.LAST_ID + 1
         Bitmask.LAST_ID = Bitmask.LAST_ID + 1
@@ -37,6 +44,9 @@ class Bitmask():
         a.mask = np.logical_not(self.mask)
         a.amount_set = np.count_nonzero(a.mask)
         return a
+    
+    def xor(self, mask):
+        return Bitmask(self.n, np.logical_xor(self.mask, mask.mask))
     
     def true_pos(self):
         return self.mask.nonzero()[0]

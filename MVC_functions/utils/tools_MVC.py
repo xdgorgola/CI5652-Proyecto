@@ -27,6 +27,7 @@ def vertex_gain(g: Graph, vert: int, vertex_covered: list[tuple[int,int]]) -> in
 
     return v_gain
 
+
 def construct_vc(g: Graph) -> tuple[set[int], list[int]]:
     """
         Creates a vertex cover for a graph using the following heuristic:
@@ -64,6 +65,32 @@ def construct_vc(g: Graph) -> tuple[set[int], list[int]]:
 
     return (C, vloss)
 
+
+def partial_construct_vc(g: Graph, C: set[int]):
+    for e in g.edges:
+        if e[0] in C or e[1] in C:
+            continue
+
+        C.add(e[0] if g.get_degree(e[0]) > g.get_degree(e[1]) else e[1])
+
+    vloss: list[int] = [0 for _ in range(g.vertex_count)]
+    for e in g.edges:
+        if e[0] in C and e[1] in C:
+            continue
+
+        looser = e[0] if e[0] in C else e[1]
+        vloss[looser] = vloss[looser] + 1
+    
+    for v in list(C):
+        if vloss[v] != 0:
+            continue
+        C.remove(v)
+        for n in g.get_neighboors(v):
+            vloss[n] = vloss[n] + 1
+
+    return C
+
+
 def BMS(s: set[int], k: int, f: Callable[[int], int]) -> int:
     """
         Choose k elements randomly with replacement from the set S and 
@@ -95,6 +122,7 @@ def BMS(s: set[int], k: int, f: Callable[[int], int]) -> int:
 
 def ChooseRmVertex(C: set[int], vloss: list[int]) -> int:
     return BMS(C,50, lambda x: vloss[x])
+
 
 def ChooseRemoveVertices(C: set[int], vloss: list[int]) -> list[int]:
     min_loss_vertex: int = min(C, key=lambda v: vloss[v])
