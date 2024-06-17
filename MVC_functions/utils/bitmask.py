@@ -1,5 +1,4 @@
 import numpy as np
-from functools import reduce
 
 class Bitmask():
     LAST_ID = 0
@@ -45,6 +44,9 @@ class Bitmask():
         a.amount_set = np.count_nonzero(a.mask)
         return a
     
+    def dist_to(self, b):
+        return (self.mask != b.mask).sum()
+
     def xor(self, mask):
         return Bitmask(self.n, np.logical_xor(self.mask, mask.mask))
     
