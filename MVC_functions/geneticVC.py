@@ -183,7 +183,7 @@ def genetic_process(g: Graph, i_pop: int = 5, mut_rate: float=None, max_iters: i
              
     return (best, bestFit)
 
-
+# ============== ALGORITMO MEMETICO ==============
 def genetic_memetic_algorithm(g: Graph, i_pop: int = 5, mut_rate: float=None, max_iters: int = 40, max_time: int = 300):
     pop: list[Bitmask] = generate_initial_pop(i_pop, g)
     start_time = time()
@@ -204,6 +204,125 @@ def genetic_memetic_algorithm(g: Graph, i_pop: int = 5, mut_rate: float=None, ma
 
     return (best, bestFit)
     # Tiene pinta de que elitist y worst estan matando la diversidad!
+
+
+def generate_initial_diverse_pop(i_pop: int, g: Graph, percentage_closeness: float) -> list[Bitmask]:
+
+    bitMasks = []
+
+    while len(bitMasks) < i_pop:
+
+        new_bitmask = Bitmask(g.vertex_count, list(np.random.choice(a=[False, True], size=g.vertex_count)))
+        
+        append = True
+        for bitMask in bitMasks:
+
+            if new_bitmask.dist_to(bitMask) <= g.vertex_count * percentage_closeness:
+                append = False
+            
+        if append:
+            bitMasks.append(new_bitmask) 
+
+    return bitMasks
+
+def improve_pop(pop: list[Bitmask], g: Graph) -> list[Bitmask]:
+    result = []
+    for bitmask in pop:
+        result.append(heuristic_to_bitmask(bitmask, g))
+    
+    return result
+
+
+def build_distance_matrix(pop: list[Bitmask]) -> np.matrix:
+    matrix = np.zeros((len(pop),len(pop)))
+    for i in range(len(pop)):
+        for j in range(i, len(pop)):
+            matrix[i,j] = pop[i].dist_to(pop[j]) 
+    
+    return matrix + matrix.T
+
+def calculate_goodness(pop: list[Bitmask], distance_matrix: np.matrix, n: int) -> list[float]:
+    dip = []
+    fsi = []
+    for i in range(len(pop)):
+        fila = distance_matrix[i,:]
+        fila = np.delete(fila, i)
+        dip.append(fila.min())
+        fsi.append(len(set(pop[i].true_pos())))
+
+    dip = np.array(dip)
+    fsi = np.array(fsi)
+
+    return fsi + np.exp((0.08 * n)/dip)
+
+def pop_updating(pop: list[Bitmask], offspring: Bitmask, distance_matrix: np.matrix, n: int) -> tuple[list[Bitmask], np.matrix]:
+
+    new_distances = np.array([offspring.dist_to(a) for a in pop])
+    new_distance_matrix = np.append(distance_matrix, new_distances.reshape(1,len(pop)), axis=0)
+    new_distance_matrix = np.append(new_distance_matrix, np.append(new_distances, 0).reshape(len(pop) + 1, 1), axis=1)
+    new_pop = pop + [offspring]
+
+    hip = calculate_goodness(new_pop, new_distance_matrix, n)
+    
+    maximum_hip = -inf
+    maximum_s_index = -1
+    for i, s in enumerate(new_pop):
+        if maximum_hip < hip[i]:
+            maximum_hip = hip[i]
+            maximum_s_index = i
+    
+    if maximum_s_index != len(pop):
+        new_distance_matrix = np.delete(new_distance_matrix, maximum_s_index, 0)
+        new_distance_matrix = np.delete(new_distance_matrix, maximum_s_index, 1)    
+        new_pop.pop(maximum_s_index)
+    else:
+        if np.random.uniform(0,1) < 0.2:
+           
+            maximum_hip = -inf
+            maximum_s_index = -1
+            for i, s in enumerate(new_pop):
+                if i != len(pop) and  maximum_hip < hip[i]:
+                    maximum_hip = hip[i]
+                    maximum_s_index = i
+            
+            new_distance_matrix = np.delete(new_distance_matrix, maximum_s_index, 0)
+            new_distance_matrix = np.delete(new_distance_matrix, maximum_s_index, 1)
+            new_pop.pop(maximum_s_index)
+        else:
+            new_pop = pop
+            new_distance_matrix = distance_matrix
+    
+    return (new_pop, new_distance_matrix)
+
+# ============== ALGORITMO MEMETICO DISPERSO ==============
+def genetic_scatter_memetic_algorithm(g: Graph, i_pop: int = 5, max_iters: int = 40, max_time: int = 300):
+    pop: list[Bitmask] = generate_initial_diverse_pop(i_pop, g, 0.25)
+    pop = improve_pop(pop, g)
+
+    best, bestFit, i = None, inf, 0
+    distance_matrix: np.matrix = build_distance_matrix(pop)
+
+    for bm in pop:
+        if len(set(bm.true_pos())) < bestFit:
+            bestFit = len(set(bm.true_pos()))
+            best = bm
+    
+    start_time = time()
+    while (i < max_iters and time() - start_time < max_time):
+        parents_index = np.random.choice(len(pop), 5, replace=False)
+        parents = [a for i, a in enumerate(pop) if i in parents_index]
+        offspring = heuristic_to_bitmask(k_parents_crossover(parents), g)
+
+        print(f"======== Generacion {i} ========")
+        i = i + 1
+
+        if len(set(offspring.true_pos())) < bestFit:
+            bestFit = len(set(offspring.true_pos()))
+            best = offspring
+
+        pop, distance_matrix = pop_updating(pop, offspring, distance_matrix, g.vertex_count)
+    
+    return (best, bestFit)
 
 if __name__ == "__main__":
     g = AdjacencyDictGraph("./res/ca-GrQc.mtx")
