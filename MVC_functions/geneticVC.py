@@ -294,6 +294,39 @@ def pop_updating(pop: list[Bitmask], offspring: Bitmask, distance_matrix: np.mat
     
     return (new_pop, new_distance_matrix)
 
+def relinking_paths(pop: list[Bitmask], distance_matrix: np.matrix, best: Bitmask, bestfit: float, g:Graph,percentage: float) -> tuple[list[Bitmask], np.matrix, Bitmask, float]:
+    sub_pop:list = list(np.random.choice(pop, round(len(pop) * percentage),replace=False))
+
+    if len(sub_pop) % 2 != 0:
+        sub_pop.pop()
+    
+    if len(sub_pop) == 0:
+        return pop, distance_matrix
+
+    permutation = list(np.random.choice(g.vertex_count, g.vertex_count, replace=False))
+
+    while len(sub_pop) > 0:
+        start, end = tuple(np.random.choice(sub_pop, 2, replace=False))
+
+        for i in permutation:
+            if start[i] == end[i]:
+                continue
+            
+            if end[i] == False:
+                start[i] = False
+                if is_vc_gen_alt(set(start.true_pos()), g)[0] and  len(set(start.true_pos())) < bestfit:
+                    pop, distance_matrix = pop_updating(pop, start, distance_matrix, g.vertex_count)
+                    best = Bitmask.from_int_set(g.vertex_count, set(start.true_pos()))
+                    bestfit = len(set(start.true_pos()))
+            else:
+                start[i] = True
+        
+        sub_pop.remove(start)
+        sub_pop.remove(end)
+    
+    return pop, distance_matrix, best, bestfit
+
+
 # ============== ALGORITMO MEMETICO DISPERSO ==============
 def genetic_scatter_memetic_algorithm(g: Graph, i_pop: int = 5, max_iters: int = 40, max_time: int = 300):
     pop: list[Bitmask] = generate_initial_diverse_pop(i_pop, g, 0.25)
@@ -309,6 +342,7 @@ def genetic_scatter_memetic_algorithm(g: Graph, i_pop: int = 5, max_iters: int =
     
     start_time = time()
     while (i < max_iters and time() - start_time < max_time):
+        s = time()
         parents_index = np.random.choice(len(pop), 5, replace=False)
         parents = [a for i, a in enumerate(pop) if i in parents_index]
         offspring = heuristic_to_bitmask(k_parents_crossover(parents), g)
@@ -321,6 +355,12 @@ def genetic_scatter_memetic_algorithm(g: Graph, i_pop: int = 5, max_iters: int =
             best = offspring
 
         pop, distance_matrix = pop_updating(pop, offspring, distance_matrix, g.vertex_count)
+
+        # hacemos el reenlazado de caminos con el 30% de la población
+        pop, distance_matrix, best, bestFit = relinking_paths(pop,distance_matrix,best, bestFit, g, 0.3)
+
+        print(f"======== La Generacion {i} tardo: {time()-s}segs ========")
+
     
     return (best, bestFit)
 

@@ -26,7 +26,7 @@ def main():
 
     g = AdjacencyDictGraph(read_mtx(path))
     start = time.time()
-    solve = genetic_scatter_memetic_algorithm(g,20, inf, 3600)
+    solve = genetic_scatter_memetic_algorithm(g,20, inf, 300)
     print(solve[1])
     print(time.time() - start)
 
