@@ -6,6 +6,7 @@ from time import time
 from math import inf
 import numpy as np
 
+import sys
 COV_AMNT_W = 2.0
 AMOUNT_SET_W = 1.0
 NOT_VC_W = 3.0
@@ -17,7 +18,7 @@ def heuristic_to_bitmask(a: Bitmask, g: Graph) -> Bitmask:
     return Bitmask.from_int_set(g.vertex_count, partial_construct_vc(g, set(a.true_pos())))
 
 def generate_initial_pop(i_pop: int, g: Graph) -> list[Bitmask]:
-    boolMask = [set(np.random.choice(a=[False, True], size=g.vertex_count)) for _ in range(i_pop)]
+    boolMask = [set(np.random.choice(a=[False, True], size=g.vertex_count).nonzero()[0]) for _ in range(i_pop)]
     return [Bitmask.from_int_set(g.vertex_count, partial_construct_vc(g, bm)) for bm in boolMask]
 
 
@@ -187,6 +188,7 @@ def genetic_process(g: Graph, i_pop: int = 5, mut_rate: float=None, max_iters: i
 def genetic_memetic_algorithm(g: Graph, i_pop: int = 5, mut_rate: float=None, max_iters: int = 40, max_time: int = 300):
     pop: list[Bitmask] = generate_initial_pop(i_pop, g)
     start_time = time()
+    foundTime = None
     best, bestFit, i = None, -inf, 0
     while (i < max_iters and time() - start_time < max_time):
         pop_fit = list(map(lambda b: fitness(b, g), pop))
@@ -200,9 +202,10 @@ def genetic_memetic_algorithm(g: Graph, i_pop: int = 5, mut_rate: float=None, ma
         gb = max(zip(pop + offspring, pop_fit + offspring_fit), key=lambda t: t[1])
         if gb[1] > bestFit:
             best = gb[0]
-            bestFit = gb[1] 
+            bestFit = gb[1]
+            foundTime = time() - start_time
 
-    return (best, bestFit)
+    return (best, bestFit, foundTime)
     # Tiene pinta de que elitist y worst estan matando la diversidad!
 
 
