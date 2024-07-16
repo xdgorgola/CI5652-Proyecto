@@ -39,37 +39,43 @@ def patrick_star(
         fitness_f: Callable[[Bitmask], float], 
         frag_f: Callable[[Bitmask], Bitmask], 
         rec_f: Callable[[Bitmask], Bitmask]) -> Bitmask:
-    pob: list[Bitmask] = generate_initial_pop(init_amnt, g)
-    init_time: float = time()
-    while (time() - init_time < star_max_time):
-        while (len(pob) < max_pob):
-            rec_pob: list[Bitmask] = []
-            fra_pob: list[Bitmask] = []
-            for bm in pob:
-                if (time() - init_time >= star_max_time):
-                    break
-
-                print(f"Reconstruyendo individuo...")
-                rec_pob.append(Bitmask.from_int_set(g.vertex_count, partialGraspMVC(g, bm.to_set(), rec_max_time)))
-            
-            print(f"Fragmentando... Factor {frag_fact}")
-            for i in rec_pob:
-                if (time() - init_time >= star_max_time):
-                    break
-                print(f"Fragmentando nuevo individuo...")
-                for _ in range(frag_fact):
+    
+    try:
+        pob: list[Bitmask] = generate_initial_pop(init_amnt, g)
+        init_time: float = time()
+        best: Bitmask = pob[0]
+        while (time() - init_time < star_max_time):
+            while (len(pob) < max_pob):
+                rec_pob: list[Bitmask] = []
+                fra_pob: list[Bitmask] = []
+                for bm in pob:
                     if (time() - init_time >= star_max_time):
                         break
-                    print("Generada fragmentacion!")
-                    fra_pob.append(frag_f(i))
-            pob = rec_pob + fra_pob
 
-        print("Podando...")
-        fitness = map(lambda bm : fitness_f(bm), pob)
-        sorted_by_fit = sorted(zip(pob, fitness), key=lambda z: z[1], reverse=True)
-        pob = list(map(lambda i: i[0], sorted_by_fit[0:surv_pob]))
-        print(f"Sobreviven {len(pob)}...")
+                    print(f"Reconstruyendo individuo...")
+                    rec_pob.append(Bitmask.from_int_set(g.vertex_count, partialGraspMVC(g, bm.to_set(), rec_max_time)))
+                
+                print(f"Fragmentando... Factor {frag_fact}")
+                for i in rec_pob:
+                    if (time() - init_time >= star_max_time):
+                        break
+                    print(f"Fragmentando nuevo individuo...")
+                    for _ in range(frag_fact):
+                        if (time() - init_time >= star_max_time):
+                            break
+                        print("Generada fragmentacion!")
+                        fra_pob.append(frag_f(i))
+                pob = rec_pob + fra_pob
 
-    fitness = map(lambda bm : fitness_f(bm), pob)
-    sorted_by_fit = sorted(zip(pob, fitness), key=lambda z: z[1], reverse=True)
-    return list(map(lambda i: i[0], sorted_by_fit[0]))
+            print("Podando...")
+            fitness = map(lambda bm : fitness_f(bm), pob)
+            sorted_by_fit = sorted(zip(pob, fitness), key=lambda z: z[1], reverse=True)
+            pob = list(map(lambda i: i[0], sorted_by_fit[0:surv_pob]))
+            if (best == None or sorted_by_fit[0][0] > best):
+                best = sorted_by_fit[0][1]
+
+            print(f"Sobreviven {len(pob)}...")
+    except:
+        pass
+    finally:
+        return best

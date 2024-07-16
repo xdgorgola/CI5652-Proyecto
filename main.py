@@ -116,5 +116,5 @@ if __name__ == "__main__":
     #g = AdjacencyDictGraph(read_mtx("./res/tech-internet-as.mtx"))
     #g = AdjacencyDictGraph(read_mtx("./res/ia-wiki-Talk.mtx"))
 
-    res = patrick_star(g, 60 * 5, 5, 1, 4, 1, 1, lambda bm: patrick_fitness(bm, g), lambda bm: random_fragmentation(bm, 35), None)
-    print(f"{res[0].amount_set} {res[2]}")
+    res = patrick_star(g, 60 * 60, 60 * 2, 1, 32, 1, 1, lambda bm: patrick_fitness(bm, g), lambda bm: random_fragmentation(bm, 35), None)
+    print(f"{res.amount_set}\n{res}")
