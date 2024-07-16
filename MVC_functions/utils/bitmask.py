@@ -75,6 +75,10 @@ class Bitmask():
     def __str__(self) -> str:
         return ''.join(self.mask.astype(int).astype(str).tolist())
     
-def generate_initial_pop(i_pop: int, g: Graph) -> list[Bitmask]:
+def generate_initial_pop_cvc(i_pop: int, g: Graph) -> list[Bitmask]:
     boolMask = [set(np.random.choice(a=[False, True], size=g.vertex_count).nonzero()[0]) for _ in range(i_pop)]
     return [Bitmask.from_int_set(g.vertex_count, partial_construct_vc(g, bm)) for bm in boolMask]
+    
+def generate_initial_pop(i_pop: int, g: Graph) -> list[Bitmask]:
+    boolMask = [set(np.random.choice(a=[False, True], size=g.vertex_count).nonzero()[0]) for _ in range(i_pop)]
+    return [Bitmask.from_int_set(g.vertex_count, bm) for bm in boolMask]

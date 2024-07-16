@@ -1,4 +1,4 @@
-from .utils.bitmask import Bitmask, generate_initial_pop
+from .utils.bitmask import Bitmask, generate_initial_pop_cvc
 from utils.graph import Graph, AdjacencyDictGraph, is_vc_gen_alt
 from .utils.tools_MVC import partial_construct_vc
 from random import random
@@ -182,7 +182,7 @@ def genetic_process(g: Graph, i_pop: int = 5, mut_rate: float=None, max_iters: i
 # ============== ALGORITMO MEMETICO ==============
 def genetic_memetic_algorithm(g: Graph, i_pop: int = 5, mut_rate: float=None, max_iters: int = 40, max_time: int = 300):
     try:
-        pop: list[Bitmask] = generate_initial_pop(i_pop, g)
+        pop: list[Bitmask] = generate_initial_pop_cvc(i_pop, g)
         start_time = time()
         foundTime = None
         best, bestFit, i = None, -inf, 0
