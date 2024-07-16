@@ -56,7 +56,11 @@ def patrick_star(
                         break
 
                     print(f"Reconstruyendo individuo...")
-                    rec_pob.append(Bitmask.from_int_set(g.vertex_count, partialGraspMVC(g, bm.to_set(), rec_max_time)))
+                    reconstruccion = partialGraspMVC(g, bm.to_set(), rec_max_time)
+                    if reconstruccion == set():
+                       reconstruccion = heuristic_to_bitmask(bm, g)
+                                        
+                    rec_pob.append(Bitmask.from_int_set(g.vertex_count, reconstruccion))
                 
                 print(f"Fragmentando... Factor {frag_fact}")
                 for i in rec_pob:
@@ -74,13 +78,14 @@ def patrick_star(
             fitness = map(lambda bm : fitness_f(bm), pob)
             sorted_by_fit = sorted(zip(pob, fitness), key=lambda z: z[1], reverse=True)
             pob = list(map(lambda i: i[0], sorted_by_fit[0:surv_pob]))
-            if (best == None or sorted_by_fit[0][0] > best):
-                best = sorted_by_fit[0][1]
+            if (best == None or sorted_by_fit[0][1] > best_fitness):
+                best = sorted_by_fit[0][0]
                 best_time = time()
-                best_fitness = sorted_by_fit[0][0]
+                best_fitness = sorted_by_fit[0][1]
 
             print(f"Sobreviven {len(pob)}...")
-    except:
+    except Exception as e:
+        print(e)
         pass
     finally:
         return (best, best_time, best_fitness)
