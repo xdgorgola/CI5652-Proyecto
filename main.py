@@ -8,7 +8,7 @@ from MVC_functions.local_searchMVC import local_searchMVC
 from MVC_functions.SAMVC import SAMVC
 from threading import Thread
 import sys
-from utils.graph import AdjacencyDictGraph,read_mtx
+from utils.graph import AdjacencyDictGraph, is_vc_gen_alt,read_mtx
 
 import pandas as pd
 
@@ -117,4 +117,5 @@ if __name__ == "__main__":
     #g = AdjacencyDictGraph(read_mtx("./res/ia-wiki-Talk.mtx"))
 
     res = patrick_star(g, 60 * 60, 60 * 2, 1, 32, 1, 1, lambda bm: patrick_fitness(bm, g), lambda bm: random_fragmentation(bm, 35), None)
-    print(f"{res.amount_set}\n{res}")
+    (is_vc, cov_amnt) = is_vc_gen_alt(set(res[0].true_pos()), g)
+    print(f"Amount set {res[0].amount_set}\n Time {res[1]}\n Fitness {res[2]}\n IsVc {is_vc}\n Covered Amount {cov_amnt}\n {res[0]}")

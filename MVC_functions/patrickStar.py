@@ -44,6 +44,9 @@ def patrick_star(
         pob: list[Bitmask] = generate_initial_pop(init_amnt, g)
         init_time: float = time()
         best: Bitmask = pob[0]
+        best_time: int = 0
+        best_fitness: int = fitness_f(best)
+
         while (time() - init_time < star_max_time):
             while (len(pob) < max_pob):
                 rec_pob: list[Bitmask] = []
@@ -73,9 +76,11 @@ def patrick_star(
             pob = list(map(lambda i: i[0], sorted_by_fit[0:surv_pob]))
             if (best == None or sorted_by_fit[0][0] > best):
                 best = sorted_by_fit[0][1]
+                best_time = time()
+                best_fitness = sorted_by_fit[0][0]
 
             print(f"Sobreviven {len(pob)}...")
     except:
         pass
     finally:
-        return best
+        return (best, best_time, best_fitness)
