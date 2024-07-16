@@ -1,4 +1,4 @@
-from .utils.bitmask import Bitmask
+from .utils.bitmask import Bitmask, generate_initial_pop
 from utils.graph import Graph, AdjacencyDictGraph, is_vc_gen_alt
 from .utils.tools_MVC import partial_construct_vc
 from random import random
@@ -16,11 +16,6 @@ NOT_VC_W = 3.0
 
 def heuristic_to_bitmask(a: Bitmask, g: Graph) -> Bitmask:
     return Bitmask.from_int_set(g.vertex_count, partial_construct_vc(g, set(a.true_pos())))
-
-def generate_initial_pop(i_pop: int, g: Graph) -> list[Bitmask]:
-    boolMask = [set(np.random.choice(a=[False, True], size=g.vertex_count).nonzero()[0]) for _ in range(i_pop)]
-    return [Bitmask.from_int_set(g.vertex_count, partial_construct_vc(g, bm)) for bm in boolMask]
-
 
 def fitness(a: Bitmask, g: Graph) -> int:
     """
@@ -186,26 +181,27 @@ def genetic_process(g: Graph, i_pop: int = 5, mut_rate: float=None, max_iters: i
 
 # ============== ALGORITMO MEMETICO ==============
 def genetic_memetic_algorithm(g: Graph, i_pop: int = 5, mut_rate: float=None, max_iters: int = 40, max_time: int = 300):
-    pop: list[Bitmask] = generate_initial_pop(i_pop, g)
-    start_time = time()
-    foundTime = None
-    best, bestFit, i = None, -inf, 0
-    while (i < max_iters and time() - start_time < max_time):
-        pop_fit = list(map(lambda b: fitness(b, g), pop))
-        parents = elitist_selection(pop, pop_fit, 3)
-        offspring = [heuristic_to_bitmask(uniform_mutation(k_parents_crossover(parents), mut_rate), g)]
-        offspring_fit = [fitness(offspring[0], g)]
-        pop = worst_elimination(pop, pop_fit, offspring)
-        
-        print(f"======== Generacion {i} ========")
-        i = i + 1
-        gb = max(zip(pop + offspring, pop_fit + offspring_fit), key=lambda t: t[1])
-        if gb[1] > bestFit:
-            best = gb[0]
-            bestFit = gb[1]
-            foundTime = time() - start_time
+    try:
+        pop: list[Bitmask] = generate_initial_pop(i_pop, g)
+        start_time = time()
+        foundTime = None
+        best, bestFit, i = None, -inf, 0
+        while (i < max_iters and time() - start_time < max_time):
+            pop_fit = list(map(lambda b: fitness(b, g), pop))
+            parents = elitist_selection(pop, pop_fit, 3)
+            offspring = [heuristic_to_bitmask(uniform_mutation(k_parents_crossover(parents), mut_rate), g)]
+            offspring_fit = [fitness(offspring[0], g)]
+            pop = worst_elimination(pop, pop_fit, offspring)
 
-    return (best, bestFit, foundTime)
+            print(f"======== Generacion {i} ========")
+            i = i + 1
+            gb = max(zip(pop + offspring, pop_fit + offspring_fit), key=lambda t: t[1])
+            if gb[1] > bestFit:
+                best = gb[0]
+                bestFit = gb[1]
+                foundTime = time() - start_time
+    finally:
+        return (best, bestFit, foundTime)
     # Tiene pinta de que elitist y worst estan matando la diversidad!
 
 

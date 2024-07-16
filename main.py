@@ -1,7 +1,9 @@
 import os
+import math
 from MVC_functions.fastVC import fastVC
 from MVC_functions.TS import tabu_search
 from MVC_functions.graspMVC import graspMVC
+from MVC_functions.patrickStar import patrick_star, random_fragmentation, patrick_fitness
 from MVC_functions.local_searchMVC import local_searchMVC
 from MVC_functions.SAMVC import SAMVC
 from threading import Thread
@@ -107,14 +109,12 @@ def main(dir_path_in:str, dir_path_out:str, files_per_batch:str, type:str):
 
 
 if __name__ == "__main__":
-    """
-    Ejemplo de como deben llamar a este script
-        python .\main.py .\res\datos .\res\results\ 5 fastvc
-    
-    """
-    if len(sys.argv) != 5:
-        print("Wrong amount of parameters used. Usage:")
-        print("\tpython fastVC.py [path_in] [path_out] [files_per_batch]")
-        sys.exit(1)
+    g = AdjacencyDictGraph(read_mtx("./res/bio-yeast.mtx"))
+    #g = AdjacencyDictGraph(read_mtx("./res/web-google.mtx"))
+    #g = AdjacencyDictGraph(read_mtx("./res/ia-email-univ.mtx"))
+    #g = AdjacencyDictGraph(read_mtx("./res/ia-fb-messages.mtx"))
+    #g = AdjacencyDictGraph(read_mtx("./res/tech-internet-as.mtx"))
+    #g = AdjacencyDictGraph(read_mtx("./res/ia-wiki-Talk.mtx"))
 
-    main(*sys.argv[1:])
+    res = patrick_star(g, 60 * 5, 5, 1, 4, 1, 1, lambda bm: patrick_fitness(bm, g), lambda bm: random_fragmentation(bm, 35), None)
+    print(f"{res[0].amount_set} {res[2]}")

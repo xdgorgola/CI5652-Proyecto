@@ -57,6 +57,34 @@ def greedy_randomize_building(g:Graph, alpha:float, cutoff:float):
     
     return s 
 
+
+def partial_greedy_randomize_building(g:Graph, part: set[int], alpha:float, cutoff:float):
+    s: set[int] = set(part)
+    gain: list[float] = []
+
+    for i in range(g.vertex_count):
+        gain.append(g.get_degree(i))
+
+    for i in s:
+        gain[i] = 0
+    
+    start_time = time.time()
+    while not is_vc_alt(s,g):
+        if time.time() - start_time > cutoff:
+            raise Exception("Tardo demasiado")
+        
+        RCL: list[int] = build_RCL(gain, alpha)
+        e: int = random.choice(RCL)
+        s.add(e)
+
+        for i in g.get_neighboors(e):
+            if gain[i] > 0:
+                gain[i] -= 1
+
+        gain[e] = 0
+    return s 
+
+
 def calculate_loss(g:Graph, C: list[int]) -> list[int]:
     vloss: list[int] = [0 for _ in range(g.vertex_count)]
     
@@ -96,3 +124,22 @@ def graspMVC(g: Graph, cutoff: int):
             c_star = type(c_prime_star)(c_prime_star)
     
     return (c_star, found_time - start_time)
+
+
+def partialGraspMVC(g: Graph, partial: set[int], cutoff: int):
+    c_star: set[int] | None = None
+    start_time: float = time.time()
+
+    while time.time() - start_time < cutoff: 
+        try:
+            c_prime = partial_greedy_randomize_building(g, partial, 0.25, cutoff/5)
+        except:
+            return (set(), -1)
+
+        vloss = calculate_loss(g,c_prime)
+        c_prime_star, _ = local_searchMVC(g, cutoff/2, 100, (c_prime, vloss))
+        
+        if c_star == None or len(c_prime_star) > len(c_star):
+            c_star = type(c_prime_star)(c_prime_star)
+    
+    return c_star
