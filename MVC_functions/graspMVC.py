@@ -134,7 +134,7 @@ def partialGraspMVC(g: Graph, partial: set[int], cutoff: int):
         try:
             c_prime = partial_greedy_randomize_building(g, partial, 0.25, cutoff/5)
         except:
-            return (set(), -1)
+            return set()
 
         vloss = calculate_loss(g,c_prime)
         c_prime_star, _ = local_searchMVC(g, cutoff/2, 100, (c_prime, vloss))

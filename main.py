@@ -116,6 +116,6 @@ if __name__ == "__main__":
     #g = AdjacencyDictGraph(read_mtx("./res/tech-internet-as.mtx"))
     #g = AdjacencyDictGraph(read_mtx("./res/ia-wiki-Talk.mtx"))
 
-    res = patrick_star(g, 60 * 60, 60 * 3, 1, 16, 1, 1, lambda bm: patrick_fitness(bm, g), lambda bm: random_fragmentation(bm, 35), None)
+    res = patrick_star(g, 60 * 45, 60 * 3, 1, 16, 1, 1, lambda bm: patrick_fitness(bm, g), lambda bm: random_fragmentation(bm, 35), None)
     (is_vc, cov_amnt) = is_vc_gen_alt(set(res[0].true_pos()), g)
     print(f"Amount set {res[0].amount_set}\n Time {res[1]}\n Fitness {res[2]}\n IsVc {is_vc}\n Covered Amount {cov_amnt}\n {res[0]}")

@@ -49,6 +49,8 @@ def patrick_star(
 
         while (time() - init_time < star_max_time):
             while (len(pob) < max_pob):
+                if (time() - init_time >= star_max_time):
+                    break
                 rec_pob: list[Bitmask] = []
                 fra_pob: list[Bitmask] = []
                 for bm in pob:
@@ -80,7 +82,7 @@ def patrick_star(
             pob = list(map(lambda i: i[0], sorted_by_fit[0:surv_pob]))
             if (best == None or sorted_by_fit[0][1] > best_fitness):
                 best = sorted_by_fit[0][0]
-                best_time = time()
+                best_time = time() - init_time
                 best_fitness = sorted_by_fit[0][1]
 
             print(f"Sobreviven {len(pob)}...")
